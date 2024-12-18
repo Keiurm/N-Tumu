@@ -1,23 +1,55 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
 
     public GameObject[] ballPrefabs;
-    public bool isDragged = false;
+    private bool isDragged = false;
 
     private CommonBall firstBall = null;
 
     private List<GameObject> removableBallList = new List<GameObject>();
+
+    private bool isPlaying = false;
+
+    public TextMeshProUGUI timerText;
+
+    public int TIME_LIMIT = 60;
+
+    public int TIME_COUNT = 5;
+
+    private int currentScore;
+
+    public TextMeshProUGUI scoreText;
     void Start()
     {
-        StartCoroutine(DropBall());
+        StartCoroutine(CountDown());
     }
+    private IEnumerator CountDown()
+    {
+        float count = TIME_COUNT;
+        while (count > 0)
+        {
+            timerText.text = count.ToString();
+            yield return new WaitForSeconds(1);
+            count--;
+        }
+        timerText.text = "Start!";
+        yield return new WaitForSeconds(1);
+
+        isPlaying = true;
+        StartCoroutine(DropBall());
+        StartCoroutine(GameTimer());
+
+    }
+
     private IEnumerator DropBall()
     {
-        for (int i = 0; i < 50; i++)
+        while (isPlaying)
         {
             int RANDOM_INDEX = Random.Range(0, ballPrefabs.Length);
             float RANDOM_X = Random.Range(-2.0f, 2.0f);
@@ -29,23 +61,43 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private IEnumerator GameTimer()
+    {
+        float count = TIME_LIMIT;
+        while (count > 0)
+        {
+            timerText.text = count.ToString();
+            yield return new WaitForSeconds(1);
+            count--;
+        }
+        timerText.text = "Finish!";
+        isPlaying = false;
+
+        foreach (GameObject ball in removableBallList)
+        {
+            ball.GetComponent<CommonBall>().ResetColor();
+        }
+    }
+
     // Update is called once per frame
     private void Update()
     {
-
-        if (Input.GetMouseButtonDown(0) && isDragged == false)
+        if (isPlaying)
         {
-            isDragged = true;
-            OnDragStart();
-        }
-        else if (Input.GetMouseButton(0) && isDragged == true)
-        {
-            OnDragging();
-        }
-        else
-        {
-            isDragged = false;
-            OnDragEnd();
+            if (Input.GetMouseButtonDown(0) && isDragged == false)
+            {
+                isDragged = true;
+                OnDragStart();
+            }
+            else if (Input.GetMouseButton(0) && isDragged == true)
+            {
+                OnDragging();
+            }
+            else
+            {
+                isDragged = false;
+                OnDragEnd();
+            }
         }
     }
 
@@ -63,6 +115,12 @@ public class GameManager : MonoBehaviour
         return atDeleteTarget;
     }
 
+    private void ChangeColor(GameObject obj)
+    {
+        Material ballMaterial = obj.GetComponent<Renderer>().material;
+        ballMaterial.SetFloat("_Metallic", 1.0f);
+    }
+
     private void OnDragStart()
     {
         Debug.Log("OnDragStart");
@@ -75,6 +133,7 @@ public class GameManager : MonoBehaviour
                 firstBall = targetObject.GetComponent<CommonBall>();
                 removableBallList.Add(targetObject);
                 firstBall.isAdd = true;
+                ChangeColor(targetObject);
             }
         }
     }
@@ -94,6 +153,7 @@ public class GameManager : MonoBehaviour
                     {
                         removableBallList.Add(targetObject);
                         targetBall.isAdd = true;
+                        ChangeColor(targetObject);
                     }
                 }
             }
@@ -108,14 +168,18 @@ public class GameManager : MonoBehaviour
         {
             foreach (GameObject ball in removableBallList)
             {
+                currentScore += length;
+                scoreText.text = $"Score: {currentScore}";
                 Destroy(ball);
             }
+            removableBallList.Clear();
         }
         else
         {
             foreach (GameObject ball in removableBallList)
             {
                 ball.GetComponent<CommonBall>().isAdd = false;
+                ball.GetComponent<CommonBall>().ResetColor();
             }
         }
     }
