@@ -123,7 +123,6 @@ public class GameManager : MonoBehaviour
 
     private void OnDragStart()
     {
-        Debug.Log("OnDragStart");
         GameObject targetObject = GetCurrentTarget();
         removableBallList.Clear();
         if (targetObject)
@@ -140,7 +139,7 @@ public class GameManager : MonoBehaviour
 
     private void OnDragging()
     {
-        Debug.Log("OnDragging");
+
         GameObject targetObject = GetCurrentTarget();
         if (targetObject)
         {
