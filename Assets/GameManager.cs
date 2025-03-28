@@ -44,7 +44,6 @@ public class GameManager : MonoBehaviour
         isPlaying = true;
         StartCoroutine(DropBall());
         StartCoroutine(GameTimer());
-
     }
 
     private IEnumerator DropBall()
@@ -141,7 +140,8 @@ public class GameManager : MonoBehaviour
     {
 
         GameObject targetObject = GetCurrentTarget();
-        if (targetObject)
+
+        if (targetObject != null && firstBall != null)
         {
             if (targetObject.name.IndexOf("Ball") != -1)
             {
